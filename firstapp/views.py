@@ -6,9 +6,9 @@ import json
 
 
 def index1(request):
-    if request.methed == 'get':
-        return render('test', 'test.html')
-    elif request.methed == 'post':
+    if request.method == 'GET':
+        return render('test.html', 'test.html')
+    elif request.method == 'POST':
         return HttpResponse('hello world')
 
 
