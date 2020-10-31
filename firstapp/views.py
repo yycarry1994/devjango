@@ -7,7 +7,7 @@ import json
 
 def index1(request):
     if request.method == 'GET':
-        return render('test.html', 'test.html')
+        return render(request, 'test.html')
     elif request.method == 'POST':
         return HttpResponse('hello world')
 
@@ -25,7 +25,7 @@ class index2(View):
         data = json.dumps(data, ensure_ascii=False)
         return HttpResponse(data, content_type='application/json', status=200)
 
-    def psot(self, request):
+    def post(self, request):
         data = {
             "methed": "post",
             "name": "yangyang",
