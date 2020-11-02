@@ -45,4 +45,4 @@ class Source(BaseModel):
     c_fenshu = models.IntegerField(max_length=4, verbose_name="分数", help_text="分数")
     c_x_bh = models.ForeignKey('Kecheng', on_delete=models.CASCADE, verbose_name='课程编号', help_text='课程编号')
     c_s_bh = models.ForeignKey('Student', on_delete=models.SET_NULL, null=True, verbose_name='学生编号', help_text='学生编号')
-    c_t_bh = models.ForeignKey('Student', on_delete=models.SET_NULL, null=True, verbose_name='教师编号', help_text='教师编号')
+
