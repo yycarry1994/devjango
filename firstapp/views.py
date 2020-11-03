@@ -39,7 +39,7 @@ class AddTeacher(View):
     {
         "name": "李三",
         "age": 25,
-        "sex": "男"，
+        "sex": "男",
         "kecheng": "语文"
     }
     """
@@ -50,9 +50,9 @@ class AddTeacher(View):
         c_age = body.get('age')
         c_sex = body.get('sex')
         c_kecheng = body.get('kecheng')
-        c_x_kecheng = Kecheng.objects.get(c_kecheng=c_kecheng).c_bh
+        c_x_kecheng = Kecheng.objects.get(c_xueke=c_kecheng)
         try:
-            add_teacher = Teacher.objects.create(c_bh=t_uuid, c_name=c_name, c_x_bh=c_x_kecheng, c_age=c_age, c_sex=c_sex)
+            add_teacher = Teacher.objects.create(c_bh=t_uuid, c_name=c_name, c_x_bh=c_x_kecheng, n_age=c_age, c_sex=c_sex)
             return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
         except Exception as e:
             return HttpResponse(e, content_type='application/json', status=200)
@@ -70,7 +70,7 @@ class AddKecheng(View):
         body = json.loads(request.body)
         c_kecheng = body.get('kecheng')
         try:
-            add_kecheng = Teacher.objects.create(c_kecheng=c_kecheng)
+            add_kecheng = Kecheng.objects.create(c_xueke=c_kecheng)
             return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
         except Exception as e:
             return HttpResponse(e, content_type='application/json', status=200)
@@ -91,10 +91,10 @@ class AddSource(View):
         c_fenshu = body.get('fenshu')
         c_kecheng = body.get('kecheng')
         c_name = body.get('name')
-        c_x_bh = Kecheng.objects.get(c_kecheng=c_kecheng).c_bh
-        c_s_bh = Student.objects.get(c_name=c_name).c_bh
+        c_x_bh = Kecheng.objects.get(c_xueke=c_kecheng)
+        c_s_bh = Student.objects.get(c_name=c_name)
         try:
-            add_source = Source.objects.create(c_kecheng=c_fenshu, c_x_bh=c_x_bh, c_s_bh=c_s_bh)
+            add_source = Source.objects.create(c_fenshu=c_fenshu, c_x_bh=c_x_bh, c_s_bh=c_s_bh)
             return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
         except Exception as e:
             return HttpResponse(e, content_type='application/json', status=200)

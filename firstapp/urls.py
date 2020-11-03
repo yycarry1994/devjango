@@ -22,6 +22,6 @@ urlpatterns = [
     path('firstapp/index2', views.index2.as_view(), name='index2'),
     path('firstapp/addstudent', views.AddStudent.as_view(), name='addstudent'),
     path('firstapp/addteacher', views.AddTeacher.as_view(), name='addteacher'),
-    path('firstapp/addKecheng', views.AddKecheng.as_view(), name='addKecheng'),
+    path('firstapp/addkecheng', views.AddKecheng.as_view(), name='addKecheng'),
     path('firstapp/addsource', views.AddSource.as_view(), name='addsource')
 ]
