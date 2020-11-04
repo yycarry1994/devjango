@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 import json
 from .models import Teacher, Kecheng, Student, Source
-import uuid
+import uuid, time
 
 
 # Create your views here.
@@ -29,7 +29,7 @@ class AddStudent(View):
             add_student = Student.objects.create(c_bh=s_uuid, c_name=c_name, c_age=c_age, c_sex=c_sex)
             return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
         except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=200)
+            return HttpResponse(e, content_type='application/json', status=500)
 
 
 class AddTeacher(View):
@@ -55,7 +55,7 @@ class AddTeacher(View):
             add_teacher = Teacher.objects.create(c_bh=t_uuid, c_name=c_name, c_x_bh=c_x_kecheng, n_age=c_age, c_sex=c_sex)
             return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
         except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=200)
+            return HttpResponse(e, content_type='application/json', status=500)
 
 
 class AddKecheng(View):
@@ -73,7 +73,7 @@ class AddKecheng(View):
             add_kecheng = Kecheng.objects.create(c_xueke=c_kecheng)
             return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
         except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=200)
+            return HttpResponse(e, content_type='application/json', status=500)
 
 
 class AddSource(View):
@@ -97,7 +97,141 @@ class AddSource(View):
             add_source = Source.objects.create(c_fenshu=c_fenshu, c_x_bh=c_x_bh, c_s_bh=c_s_bh)
             return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
         except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=200)
+            return HttpResponse(e, content_type='application/json', status=500)
+
+
+"""
+一、需求：开发5个接口，前端可以对项目进行增删改查操作
+1.需要能获取到项目的列数数据（获取所有数据）(改为获取课程表)
+    url: /projects/
+    method：GET
+    response data: json
+2.需要能获取到项目的详情数据（获取前端指定某一条数据）(改为获取课程表)
+    url: /projects/<int:pk>/
+    method：GET
+    response data: json
+3.能够创建项目（创建一个项目）（已实现）
+    url: /projects/
+    method：POST
+    request data: json
+    response data: json
+4.能够更新项目（只更新某一个项目）（课程表）
+    url: /projects/<int:pk>/
+    method：PUT
+    request data: json
+    response data: json
+5.能够删除项目（只删除某一个项目）（课程表）
+    url: /projects/<int:pk>/
+    method：DELETE
+"""
+
+class GetKecheng(View):
+    """
+    一、需求：开发5个接口，前端可以对项目进行增删改查操作
+    """
+
+    def get(self, request):
+        """
+        1.需要能获取到项目的列数数据（获取所有数据）(改为获取课程表)
+        url: /projects/      (/kechengs/)
+        method：GET
+        response data: json
+        """
+        try:
+            num_the_xueke = Kecheng.objects.all().count()
+            data = {
+                "msg": "成功",
+                "num": num_the_xueke
+            }
+            data = json.dumps(data, indent=4, ensure_ascii=False)
+            return HttpResponse(data, content_type='application/json', status=200)
+        except Exception as e:
+            return HttpResponse(e, content_type='application/json', status=500)
+
+    def post(self, request):
+        """
+        3.能够创建项目（创建一个项目）（已实现）
+        url: /projects/    (/kechengs/)
+        method：POST
+        request data: json
+        response data: json
+        body格式：
+        {
+            "kecheng": "语文",
+        }
+        """
+        body = json.loads(request.body)
+        c_kecheng = body.get('kecheng')
+        try:
+            add_kecheng = Kecheng.objects.create(c_xueke=c_kecheng)
+            return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
+        except Exception as e:
+            return HttpResponse(e, content_type='application/json', status=500)
+
+
+class DealKecheng(View):
+
+    def get(self, request, pk):
+        """
+        2.需要能获取到项目的详情数据（获取前端指定某一条数据）(改为获取课程表)
+        url: /projects/<int:pk>/
+        method：GET
+        response data: json
+        """
+        try:
+            id = pk
+            the_kecheng = Kecheng.objects.get(c_bh=id)
+            data = {
+                "c_bh": the_kecheng.c_bh,
+                "c_xueke" : the_kecheng.c_xueke,
+                "c_createtime": the_kecheng.create_time,
+                "c_updatetime": the_kecheng.update_time,
+            }
+            data = json.dumps(data, indent=4, ensure_ascii=False)
+            return HttpResponse(data, content_type='application/json', status=200)
+        except Exception as e:
+            return HttpResponse(e, content_type='application/json', status=500)
+
+    def put(self, request, pk):
+        """
+        4.能够更新项目（只更新某一个项目）（课程表）
+        url: /projects/<int:pk>/
+        method：PUT
+        request data: json
+        response data: json
+        {
+            "xueke":"测试"
+        }
+        """
+        try:
+            id = pk
+            data = json.loads(request.body)
+            the_kecheng = Kecheng.objects.get(c_bh=id)
+            c_updatetime = time.time()
+            the_kecheng.c_xueke = data.get('xueke')
+            the_kecheng.update_time = c_updatetime
+            the_kecheng.save()
+            return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
+        except Exception as e:
+            return HttpResponse(e, content_type='application/json', status=500)
+
+    def delete(self, request, pk):
+        """
+        5.能够删除项目（只删除某一个项目）（课程表）
+        url: /projects/<int:pk>/
+        method：DELETE
+        """
+        try:
+            id = pk
+            the_kecheng = Kecheng.objects.get(c_bh=id)
+            the_kecheng.delete()
+            return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
+        except Exception as e:
+            return HttpResponse(e, content_type='application/json', status=500)
+
+
+
+
 
 def index1(request):
     if request.method == 'GET':
