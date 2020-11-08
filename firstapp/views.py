@@ -1,9 +1,10 @@
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.views import View
 import json
 from .models import Teacher, Kecheng, Student, Source
 import uuid, time
+from . import serializers
 
 
 # Create your views here.
@@ -171,6 +172,12 @@ class GetKecheng(View):
 
 class DealKecheng(View):
 
+    def get_obj(self, id):
+        try:
+            return Kecheng.objects.get(id)
+        except:
+            raise Http404
+
     def get(self, request, pk):
         """
         2.需要能获取到项目的详情数据（获取前端指定某一条数据）(改为获取课程表)
@@ -178,19 +185,11 @@ class DealKecheng(View):
         method：GET
         response data: json
         """
-        try:
-            id = pk
-            the_kecheng = Kecheng.objects.get(c_bh=id)
-            data = {
-                "c_bh": the_kecheng.c_bh,
-                "c_xueke" : the_kecheng.c_xueke,
-                "c_createtime": the_kecheng.create_time,
-                "c_updatetime": the_kecheng.update_time,
-            }
-            data = json.dumps(data, indent=4, ensure_ascii=False)
-            return HttpResponse(data, content_type='application/json', status=200)
-        except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=500)
+
+        the_kecheng = self.get_obj(pk)
+        data = serializers.KechengSerializers(the_kecheng)
+        return JsonResponse(data, json_dumps_params={'ensure_ascii': True}, status=200)
+
 
     def put(self, request, pk):
         """
@@ -203,17 +202,12 @@ class DealKecheng(View):
             "xueke":"测试"
         }
         """
-        try:
-            id = pk
-            data = json.loads(request.body)
-            the_kecheng = Kecheng.objects.get(c_bh=id)
-            c_updatetime = time.time()
-            the_kecheng.c_xueke = data.get('xueke')
-            the_kecheng.update_time = c_updatetime
-            the_kecheng.save()
-            return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
-        except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=500)
+
+        the_kecheng = self.get_obj(pk)
+        data = json.loads(request.body)
+        the_kecheng.c_xueke = data.get('xueke')
+        the_kecheng.save()
+        return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
 
     def delete(self, request, pk):
         """
@@ -221,13 +215,9 @@ class DealKecheng(View):
         url: /projects/<int:pk>/
         method：DELETE
         """
-        try:
-            id = pk
-            the_kecheng = Kecheng.objects.get(c_bh=id)
-            the_kecheng.delete()
-            return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
-        except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=500)
+        the_kecheng = self.get_obj(pk)
+        the_kecheng.delete()
+        return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
 
 
 
