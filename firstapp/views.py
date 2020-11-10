@@ -1,9 +1,10 @@
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.views import View
 import json
 from .models import Teacher, Kecheng, Student, Source
-import uuid, time
+import uuid
+from . import serializers
 
 
 # Create your views here.
@@ -19,6 +20,7 @@ class AddStudent(View):
         "sex":"男"
     }
     """
+
     def post(self, request):
         s_uuid = str(uuid.uuid1()).replace('-', '')
         body = json.loads(request.body)
@@ -43,6 +45,7 @@ class AddTeacher(View):
         "kecheng": "语文"
     }
     """
+
     def post(self, request):
         t_uuid = str(uuid.uuid1()).replace('-', '')
         body = json.loads(request.body)
@@ -52,7 +55,8 @@ class AddTeacher(View):
         c_kecheng = body.get('kecheng')
         c_x_kecheng = Kecheng.objects.get(c_xueke=c_kecheng)
         try:
-            add_teacher = Teacher.objects.create(c_bh=t_uuid, c_name=c_name, c_x_bh=c_x_kecheng, n_age=c_age, c_sex=c_sex)
+            add_teacher = Teacher.objects.create(c_bh=t_uuid, c_name=c_name, c_x_bh=c_x_kecheng, n_age=c_age,
+                                                 c_sex=c_sex)
             return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
         except Exception as e:
             return HttpResponse(e, content_type='application/json', status=500)
@@ -66,6 +70,7 @@ class AddKecheng(View):
         "kecheng": "语文",
     }
     """
+
     def post(self, request):
         body = json.loads(request.body)
         c_kecheng = body.get('kecheng')
@@ -86,6 +91,7 @@ class AddSource(View):
         "name": "张三"
     }
     """
+
     def post(self, request):
         body = json.loads(request.body)
         c_fenshu = body.get('fenshu')
@@ -125,10 +131,17 @@ class AddSource(View):
     method：DELETE
 """
 
+
 class GetKecheng(View):
     """
     一、需求：开发5个接口，前端可以对项目进行增删改查操作
     """
+
+    def get_obj(self, pk):
+        try:
+            return Kecheng.objects.get(c_bh=pk)
+        except Exception:
+            raise Http404
 
     def get(self, request):
         """
@@ -137,16 +150,15 @@ class GetKecheng(View):
         method：GET
         response data: json
         """
-        try:
-            num_the_xueke = Kecheng.objects.all().count()
-            data = {
-                "msg": "成功",
-                "num": num_the_xueke
-            }
-            data = json.dumps(data, indent=4, ensure_ascii=False)
-            return HttpResponse(data, content_type='application/json', status=200)
-        except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=500)
+        the_xueke = Kecheng.objects.all()
+        num_the_xueke = the_xueke.count()
+        the_data = serializers.KechengSerializer(instance=the_xueke, many=True).data
+        data = {
+            "msg": "成功",
+            "num": num_the_xueke,
+            "kecheng": the_data
+        }
+        return JsonResponse(data, json_dumps_params={'ensure_ascii': False}, safe=False, status=200)
 
     def post(self, request):
         """
@@ -160,16 +172,26 @@ class GetKecheng(View):
             "kecheng": "语文",
         }
         """
-        body = json.loads(request.body)
-        c_kecheng = body.get('kecheng')
-        try:
-            add_kecheng = Kecheng.objects.create(c_xueke=c_kecheng)
-            return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
-        except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=500)
+        body = json.loads(request.body.decode('utf-8'))
+        serializer_obj = serializers.KechengSerializer(data=body)
+        if not serializer_obj.is_valid():
+            return_data = {
+                "msg": serializer_obj.errors,
+                "reason": "传入参数异常"
+            }
+            return JsonResponse(return_data, json_dumps_params={'ensure_ascii': False}, safe=False, status=200)
+        add_kecheng = Kecheng.objects.create(**serializer_obj.validated_data)
+        return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
+
 
 
 class DealKecheng(View):
+
+    def get_obj(self, pk):
+        try:
+            return Kecheng.objects.get(c_bh=pk)
+        except Exception:
+            raise Http404
 
     def get(self, request, pk):
         """
@@ -178,19 +200,11 @@ class DealKecheng(View):
         method：GET
         response data: json
         """
-        try:
-            id = pk
-            the_kecheng = Kecheng.objects.get(c_bh=id)
-            data = {
-                "c_bh": the_kecheng.c_bh,
-                "c_xueke" : the_kecheng.c_xueke,
-                "c_createtime": the_kecheng.create_time,
-                "c_updatetime": the_kecheng.update_time,
-            }
-            data = json.dumps(data, indent=4, ensure_ascii=False)
-            return HttpResponse(data, content_type='application/json', status=200)
-        except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=500)
+        the_kecheng = self.get_obj(pk)
+        if isinstance(the_kecheng, Http404):
+            return the_kecheng
+        data = serializers.KechengSerializer(instance=the_kecheng).data
+        return JsonResponse(data, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=200)
 
     def put(self, request, pk):
         """
@@ -203,17 +217,14 @@ class DealKecheng(View):
             "xueke":"测试"
         }
         """
-        try:
-            id = pk
-            data = json.loads(request.body)
-            the_kecheng = Kecheng.objects.get(c_bh=id)
-            c_updatetime = time.time()
-            the_kecheng.c_xueke = data.get('xueke')
-            the_kecheng.update_time = c_updatetime
-            the_kecheng.save()
-            return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
-        except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=500)
+        the_kecheng = self.get_obj(pk)
+        if isinstance(the_kecheng, Http404):
+            return the_kecheng
+        data = json.loads(request.body)
+        the_kecheng.c_xueke = data.get('xueke')
+        the_kecheng.save()
+        data = serializers.KechengSerializer(instance=the_kecheng).data
+        return JsonResponse(data, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=200)
 
     def delete(self, request, pk):
         """
@@ -221,16 +232,11 @@ class DealKecheng(View):
         url: /projects/<int:pk>/
         method：DELETE
         """
-        try:
-            id = pk
-            the_kecheng = Kecheng.objects.get(c_bh=id)
-            the_kecheng.delete()
-            return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
-        except Exception as e:
-            return HttpResponse(e, content_type='application/json', status=500)
-
-
-
+        the_kecheng = self.get_obj(pk)
+        if isinstance(the_kecheng, Http404):
+            return the_kecheng
+        the_kecheng.delete()
+        return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
 
 
 def index1(request):
