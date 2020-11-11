@@ -20,10 +20,11 @@ from . import views
 urlpatterns = [
     path('firstapp/index', views.index1, name='index'),
     path('firstapp/index2', views.index2.as_view(), name='index2'),
-    path('firstapp/addstudent', views.AddStudent.as_view(), name='addstudent'),
-    path('firstapp/addteacher', views.AddTeacher.as_view(), name='addteacher'),
-    path('firstapp/addkecheng', views.AddKecheng.as_view(), name='addKecheng'),
-    path('firstapp/addsource', views.AddSource.as_view(), name='addsource'),
-    path('firstapp/kechengs', views.GetKecheng.as_view(), name='addkecheng'),
-    path('firstapp/kechengs/<int:pk>', views.DealKecheng.as_view(), name='addkecheng2'),
+    path('firstapp/addstudent', views.AddStudent.as_view(), name='add_student'),
+    path('firstapp/addteacher', views.AddTeacher.as_view(), name='add_teacher'),
+    path('firstapp/addkecheng', views.AddKecheng.as_view(), name='add_Kecheng'),
+    path('firstapp/addsource', views.AddSource.as_view(), name='add_source'),
+    path('firstapp/kechengs', views.GetKecheng.as_view(), name='get_kecheng'),
+    path('firstapp/kechengs/<int:pk>', views.DealKecheng.as_view(), name='deal_kecheng'),
+    path('firstapp/student', views.DealStudent.as_view(), name='deal_student'),
 ]

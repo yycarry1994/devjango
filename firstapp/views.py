@@ -180,9 +180,9 @@ class GetKecheng(View):
                 "reason": "传入参数异常"
             }
             return JsonResponse(return_data, json_dumps_params={'ensure_ascii': False}, safe=False, status=200)
-        add_kecheng = Kecheng.objects.create(**serializer_obj.validated_data)
-        return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
-
+        serializer_obj.save()
+        data = json.dumps(serializer_obj.data)
+        return HttpResponse(data, content_type='application/json', status=200)
 
 
 class DealKecheng(View):
@@ -217,14 +217,27 @@ class DealKecheng(View):
             "xueke":"测试"
         }
         """
+        ret = {
+            "msg": "传入参数格式不正确",
+            "reason": ""
+        }
         the_kecheng = self.get_obj(pk)
         if isinstance(the_kecheng, Http404):
             return the_kecheng
-        data = json.loads(request.body)
-        the_kecheng.c_xueke = data.get('xueke')
-        the_kecheng.save()
-        data = serializers.KechengSerializer(instance=the_kecheng).data
-        return JsonResponse(data, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=200)
+        body_data = request.body.decode('utf-8')
+        try:
+            data = json.loads(body_data)
+        except json.JSONDecodeError:
+            return JsonResponse({"msg": "传入参数格式不正确"}, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+        serializers_kecheng = serializers.KechengSerializer(instance=the_kecheng, data=data)
+        try:
+             serializers_kecheng.is_valid(raise_exception=True)
+        except:
+            errors = serializers_kecheng.error_messages
+            ret['reason'] = errors
+            return JsonResponse(ret, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+        serializers_kecheng.save()
+        return JsonResponse(serializers_kecheng.data, json_dumps_params={'ensure_ascii': False, 'indent': 4}, safe=False, status=200)
 
     def delete(self, request, pk):
         """
@@ -238,6 +251,65 @@ class DealKecheng(View):
         the_kecheng.delete()
         return HttpResponse({'msg', '成功'}, content_type='application/json', status=200)
 
+
+class DealStudent(View):
+
+    def get_obj(self, uuid):
+        try:
+            return Student.objects.get(c_bh=uuid)
+        except Exception:
+            return Http404
+
+    def get_uuid(self):
+        return str(uuid.uuid1()).replace('-', '')
+
+    def post(self, request):
+        ret = {
+            "code": "500",
+            "msg": "传入参数格式不正确",
+            "reason": ""
+        }
+        body_data = request.body.decode('utf-8')
+        try:
+            body_data = json.loads(body_data)
+        except json.JSONDecodeError as e:
+            ret["reason"] = e
+            return JsonResponse(ret, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+        student_serializer = serializers.StudentSerializer(data=body_data)
+        try:
+            student_serializer.is_valid(raise_exception=True)
+        except:
+            ret["reason"] = student_serializer.errors
+            return JsonResponse(ret, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+        student_uuid = self.get_uuid()
+        student_serializer.save(c_bh=student_uuid)
+        return JsonResponse(student_serializer.data, json_dumps_params={'ensure_ascii': False, 'indent': 4},
+                            safe=False, status=200)
+
+    def put(self, request):
+        ret = {
+            "code": "500",
+            "msg": "传入参数格式不正确",
+            "reason": ""
+        }
+        body_data = request.body.decode('utf-8')
+        try:
+            body_data = json.loads(body_data)
+        except json.JSONDecodeError as e:
+            ret["reason"] = e
+            return JsonResponse(ret, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+        student_uuid = body_data.get('c_bh')
+        student_obj = self.get_obj(student_uuid)
+        if isinstance(student_obj, Http404):
+            return student_obj
+        student_serializer = serializers.StudentSerializer(instance=student_obj, data=body_data)
+        try:
+            student_serializer.is_valid(raise_exception=True)
+        except:
+            return JsonResponse({"msg": "传入参数不正确"}, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+        student_serializer.save(c_bh=student_uuid)
+        return JsonResponse(student_serializer.validated_data, json_dumps_params={'ensure_ascii': False, 'indent': 4},
+                            safe=False, status=200)
 
 def index1(request):
     if request.method == 'GET':
