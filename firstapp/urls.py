@@ -27,4 +27,5 @@ urlpatterns = [
     path('firstapp/kechengs', views.GetKecheng.as_view(), name='get_kecheng'),
     path('firstapp/kechengs/<int:pk>', views.DealKecheng.as_view(), name='deal_kecheng'),
     path('firstapp/student', views.DealStudent.as_view(), name='deal_student'),
+    path('firstapp/teacher', views.DealTeacher.as_view(), name='deal_teacher'),
 ]

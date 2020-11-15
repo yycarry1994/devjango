@@ -46,3 +46,6 @@ class Source(BaseModel):
     c_x_bh = models.ForeignKey('Kecheng', on_delete=models.CASCADE, verbose_name='课程编号', help_text='课程编号')
     c_s_bh = models.ForeignKey('Student', on_delete=models.SET_NULL, null=True, verbose_name='学生编号', help_text='学生编号')
 
+    def __str__(self):
+        return self.c_fenshu
+

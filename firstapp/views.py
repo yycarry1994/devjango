@@ -214,7 +214,7 @@ class DealKecheng(View):
         request data: json
         response data: json
         {
-            "xueke":"测试"
+            "c_xueke":"测试"
         }
         """
         ret = {
@@ -310,6 +310,74 @@ class DealStudent(View):
         student_serializer.save(c_bh=student_uuid)
         return JsonResponse(student_serializer.validated_data, json_dumps_params={'ensure_ascii': False, 'indent': 4},
                             safe=False, status=200)
+
+
+class DealTeacher(View):
+
+    def get_obj(self, student_uuid):
+        return Teacher.objects.get(c_bh=student_uuid)
+
+    def get_uuid(self):
+        return str(uuid.uuid1()).replace('-', '')
+
+    def get(self, request):
+        ret = {
+            'msg': '500',
+            'reason': ''
+        }
+        body_data = request.body.decode('utf-8')
+        try:
+            body_data = json.loads(body_data)
+        except json.JSONDecodeError as e:
+            ret["reason"] = e
+            return JsonResponse(ret, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+        the_teacher = self.get_obj(body_data.get('c_bh'))
+        teacher_serializer = serializers.TeacherSerializer(instance=the_teacher).data
+        return JsonResponse(teacher_serializer, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+
+    def post(self, request):
+        ret = {
+            'msg': '500',
+            'reason': ''
+        }
+        body_data = request.body.decode('utf-8')
+        try:
+            data = json.loads(body_data)
+        except json.JSONDecodeError as e:
+            ret["reason"] = e
+            return JsonResponse(ret, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+        teacher_uuid = self.get_uuid()
+        teacher_serializer = serializers.TeacherSerializer(data=data)
+        try:
+            teacher_serializer.is_valid(raise_exception=True)
+        except:
+            ret['reason'] = teacher_serializer.errors
+            return JsonResponse(ret, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+        teacher_serializer.save(c_bh=teacher_uuid)
+        return JsonResponse(teacher_serializer.data, json_dumps_params={'ensure_ascii': False, 'indent': 4},
+                            safe=False, status=200)
+
+    def put(self, request):
+        ret = {
+            'msg': '500',
+            'reason': ''
+        }
+        body_data = request.body.decode('utf-8')
+        try:
+            body_data = json.loads(body_data)
+        except json.JSONDecodeError as e:
+            ret["reason"] = e
+            return JsonResponse(ret, json_dumps_params={'ensure_ascii': False, 'indent': 4}, status=400)
+        the_teacher = self.get_obj(body_data.get('c_bh'))
+        teacher_serializer = serializers.TeacherSerializer(instance=the_teacher, data=body_data)
+        try:
+            teacher_serializer.is_valid(raise_exception=True)
+        except:
+            ret['reason'] = teacher_serializer.errors
+        teacher_serializer.save()
+        return JsonResponse(teacher_serializer.data, json_dumps_params={'ensure_ascii': False, 'indent': 4},
+                            safe=False, status=200)
+
 
 def index1(request):
     if request.method == 'GET':
