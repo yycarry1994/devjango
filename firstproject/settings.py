@@ -114,6 +114,37 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+REST_FRAMEWORK = {
+    # a.定义解析器类，用于解析不通的前端参数类型
+    # b.会自动根据请求头中Content-Type来解析参数
+    # c.无论前端传递这三种参数中的哪一种参数，都可以使用request.data去获取
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser'
+    ],
+    # a.定义渲染类，用于返回不同类型的数据
+    # b.会自动根据请求头中Accept进行渲染
+    # c.如果前端不指定Accept，那么默认返回json格式的数据
+    # d.如果指定Accept为application/json，那么也会以json数据返回
+    # e.如果指定Accept为text/html（浏览器发起GET请求会自动指定），那么会以html形式返回
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    # 'DEFAULT_FILTER_BACKENDS': [
+    #     'rest_framework.filters.SearchFilter',
+    #     'rest_framework.filters.OrderingFilter'
+    # ],
+    # 'SEARCH_PARAM': 'search',
+
+    # a.必须得指定分页引擎
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # b.必须指定每一页显示多少条数据
+    'PAGE_SIZE': 3,
+}
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 

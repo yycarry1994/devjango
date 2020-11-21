@@ -7,13 +7,14 @@ from django.shortcuts import render
 # Create your views here.
 from django.views import View
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, filters
 
 from . import serializers
 from firstapp.models import Kecheng, Teacher, Student, Source
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework import mixins
+
 
 class HomeWork1(APIView):
 
@@ -39,6 +40,11 @@ class GetKecheng(GenericAPIView):
     """
     queryset = Kecheng.objects.all()
     serializer_class = serializers.KechengSerializer
+    # pagination_class = ''
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    ordering_fields = ['c_bh', 'c_xueke']
+    search_fields = ['c_bh', 'c_xueke']
+    SEARCH_PARAM = 'search'
 
     # def get_obj(self, pk):
     #     try:
@@ -54,7 +60,14 @@ class GetKecheng(GenericAPIView):
         response data: json
         """
         the_xueke = self.get_queryset()
-        the_obj = self.get_serializer(instance=the_xueke, many=True)
+        # param = request.query_params.get('c_xueke')
+        # qs = the_xueke.filter(c_xueke__icontains=param)
+        qs = self.filter_queryset(the_xueke)
+        page = self.paginate_queryset(qs)
+        if page:
+            serializers_obj = self.get_serializer(instance=page, many=True)
+            return self.get_paginated_response(serializers_obj.data)
+        the_obj = self.get_serializer(instance=page, many=True)
         return Response(the_obj.data, status=status.HTTP_200_OK)
 
     def post(self, request):
