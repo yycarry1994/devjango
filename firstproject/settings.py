@@ -151,16 +151,17 @@ REST_FRAMEWORK = {
     # b.必须指定每一页显示多少条数据
     'PAGE_SIZE': 3,
 
-    #指定认证方式
+    # 指定认证方式
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # a.session认证
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication'
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.AllowAny',
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+    # 往往不在全局指定、一般在对应的类视图中指定
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     # 'rest_framework.permissions.AllowAny',
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ],
 }
 
 
