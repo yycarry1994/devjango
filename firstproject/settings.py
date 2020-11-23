@@ -12,9 +12,13 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 将子应用所属目录（apps）加入到Python的模块搜索路径中
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -39,7 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'firstapp.apps.FirstappConfig',
+    'app20201116.apps.App20201116Config',
+    'users.apps.UsersConfig',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -137,11 +143,24 @@ REST_FRAMEWORK = {
     #     'rest_framework.filters.OrderingFilter'
     # ],
     # 'SEARCH_PARAM': 'search',
+    # 指定用于支持coreapi的Schema
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 
     # a.必须得指定分页引擎
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'utils.pagination.PageNumberPagination',
     # b.必须指定每一页显示多少条数据
     'PAGE_SIZE': 3,
+
+    #指定认证方式
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # a.session认证
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication'
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        # 'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 
@@ -163,3 +182,58 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# STATIC_ROOT = '/static/'
+
+LOGGING = {
+    # 指定日志版本
+    'version': 1,
+    # 指定是否禁用其他已存在的日志器
+    'disable_existing_loggers': False,
+    # 指定日志的输出格式
+    'formatters': {
+        # 指定普通的日志输出格式
+        'simple': {
+            'format': '%(asctime)s - [%(levelname)s] - [msg]%(message)s'
+        },
+        # 指定更详细的日志输出格式
+        'verbose': {
+            'format': '%(asctime)s - [%(levelname)s] - %(name)s - [msg]%(message)s - [%(filename)s:%(lineno)d ]'
+        },
+    },
+    # 指定日志的过滤器
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    # 定义日志的输出渠道
+    'handlers': {
+        # 指定控制台日志输出渠道
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        # 指定日志输出的日志配置
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, "logs/mytest.log"),  # 日志文件的位置
+            # 每一个日志文件的最大字节数
+            'maxBytes': 100 * 1024 * 1024,
+            # 指定日志文件总数
+            'backupCount': 10,
+            'formatter': 'verbose'
+        },
+    },
+    # 指定日志器
+    'loggers': {
+        'logs': {  # 定义了一个名为mytest的日志器
+            'handlers': ['console', 'file'],
+            'propagate': True,
+            'level': 'DEBUG',  # 日志器接收的最低日志级别
+        },
+    }
+}

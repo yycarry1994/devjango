@@ -3,6 +3,12 @@ from utils.base_model import BaseModel
 
 # Create your models here.
 
+class Kecheng(BaseModel):
+    """
+    课程表
+    """
+    c_xueke = models.CharField(max_length=32, verbose_name='学科', help_text='学科')
+
 
 class Teacher(BaseModel):
     """
@@ -29,13 +35,6 @@ class Student(BaseModel):
 
     def __str__(self):
         return self.c_name
-
-
-class Kecheng(BaseModel):
-    """
-    课程表
-    """
-    c_xueke = models.CharField(max_length=32, verbose_name='学科', help_text='学科')
 
 
 class Source(BaseModel):

@@ -16,13 +16,13 @@ Including another URLconf
 
 from django.urls import path
 from . import views
+from rest_framework import routers
+router = routers.SimpleRouter()
+router.register(r'kechengs', views.Kechengs)
 
 urlpatterns = [
-    path('app20201116/kechengs', views.GetKecheng.as_view(), name='get_kecheng'),
-    path('app20201116/kechengs/<int:pk>', views.DealKecheng.as_view(), name='deal_kecheng'),
-    path('app20201116/student', views.DealStudent.as_view(), name='deal_student'),
-    path('app20201116/teacher', views.DealTeacher.as_view(), name='deal_teacher'),
-    path('app20201116/students/<str:pk>', views.GetStudent.as_view(), name='get_student'),
-    path('app20201116/homework1', views.HomeWork1.as_view(), name='HomeWork1'),
-    path('app20201116/homework2', views.HomeWork2.as_view(), name='HomeWork2'),
+
 ]
+
+urlpatterns += router.urls
+

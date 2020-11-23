@@ -1,7 +1,6 @@
-from abc import ABC
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from .models import Kecheng, Student, Teacher
+from app20201116.models import Kecheng, Student, Teacher, Source
 
 
 def is_container_project_word(value):
@@ -9,42 +8,17 @@ def is_container_project_word(value):
         raise serializers.ValidationError('项目名称中必须得包含“项目”')
 
 
-class KechengSerializer(serializers.Serializer):
-    c_bh = serializers.IntegerField(label='c编号', help_text='c编号', read_only=True)
-    c_xueke = serializers.CharField(label='学科',
-                                    help_text='学科',
-                                    validators=[UniqueValidator(Kecheng.objects.all(), message='学科名不能重复')],
-                                    # write_only=True,
-                                    max_length=5,
-                                    min_length=2)
-    create_time = serializers.DateTimeField(label='创建时间', help_text='创建时间', read_only=True)
-    update_time = serializers.DateTimeField(label='更新时间', help_text='更新时间', read_only=True)
-    sources = serializers.StringRelatedField(read_only=True, many=True)  # 从表__str__返回的字段
-
-    def validate_c_xueke(self, value):
-        if not value.endswith('数学'):
-            raise serializers.ValidationError('学科名称必须得以“数学”结尾')
-        return value
-
-    def create(self, validated_data):
-        add_kecheng = Kecheng.objects.create(**validated_data)
-        return add_kecheng
-
-    def update(self, instance, validated_data):
-        instance.c_xueke = validated_data.get('c_xueke')
-        instance.save()
-        return instance
-
-
 class StudentSerializer(serializers.ModelSerializer):
+
     # source = serializers.PrimaryKeyRelatedField(read_only=True, many=True)   #主表关联从表字段一定要加上many=True(主外键关联)
-    sources = serializers.StringRelatedField(read_only=True, many=True)  #从表__str__返回的字段
+    source_student_bh = serializers.StringRelatedField(read_only=True, many=True)  #从表__str__返回的字段
     # source = serializers.SlugRelatedField(slug_field='c_fenshu', many=True, read_only=True)   #在从表中选择字段关联
 
     class Meta:
         model = Student
-        # fields = '__all__'
-        fields = ("c_name", "c_age", "c_sex", "sources")
+        fields = '__all__'
+        ref_name = 'student1'
+        # fields = ("c_name", "c_age", "c_sex", "source")
 
     def create(self, validated_data):
         student = Student.objects.create(**validated_data)
@@ -60,11 +34,12 @@ class TeacherSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(write_only=True)
     # kecheng = serializers.PrimaryKeyRelatedField(queryset=Kecheng.objects.all()  #使用的关联字段，附表的主键
     # kecheng = serializers.StringRelatedField(label='父表__str__所返回的字段', help_text='父表__str__所返回的字段') #__str__返回的字段
-    kecheng = serializers.SlugRelatedField(slug_field='c_xueke', read_only=True)  #可以选择自己想要关联的字段
+    c_x_bh = serializers.SlugRelatedField(slug_field='c_xueke', queryset=Kecheng.objects.all())  #可以选择自己想要关联的字段
 
     class Meta:
         model = Teacher
         fields = '__all__'
+        ref_name = 'teacher1'
         # fields = ("c_name", "n_age", "c_sex", "c_bh", 'c_x_bh', 'kecheng', 'email')
         # a.可以指定不需要自动生成的模型类字段
         # exclude = ("c_bh", "c_x_bh")
@@ -107,3 +82,48 @@ class TeacherSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class SourceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        module = Source
+        filed = '__all__'
+        ref_name = 'source1'
+
+        extra_kwargs = {
+            'c_x_bh': {
+
+            }
+        }
+
+
+class KechengSerializer(serializers.ModelSerializer):
+    c_bh = serializers.IntegerField(label='c编号', help_text='c编号', read_only=True)
+    c_xueke = serializers.CharField(label='学科',
+                                    help_text='学科',
+                                    validators=[UniqueValidator(Kecheng.objects.all(), message='学科名不能重复')],
+                                    # write_only=True,
+                                    max_length=5,
+                                    min_length=2)
+    create_time = serializers.DateTimeField(label='创建时间', help_text='创建时间', read_only=True)
+    update_time = serializers.DateTimeField(label='更新时间', help_text='更新时间', read_only=True)
+    source_kecheng_bh = serializers.StringRelatedField(read_only=True, many=True)  # 从表__str__返回的字段
+    teacher_kecheng_cbh = TeacherSerializer(read_only=True, many=True)
+
+    def validate_c_xueke(self, value):
+        if not value.endswith('数学'):
+            raise serializers.ValidationError('学科名称必须得以“数学”结尾')
+        return value
+
+    def create(self, validated_data):
+        add_kecheng = Kecheng.objects.create(**validated_data)
+        return add_kecheng
+
+    def update(self, instance, validated_data):
+        instance.c_xueke = validated_data.get('c_xueke')
+        instance.save()
+        return instance
+
+    class Meta:
+        model = Kecheng
+        fields = '__all__'
+        ref_name = 'test1'
